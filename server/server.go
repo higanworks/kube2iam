@@ -59,6 +59,7 @@ type Server struct {
 	NamespaceRestriction    bool
 	Verbose                 bool
 	Version                 bool
+	HideUserData            bool
 	iam                     *iam.Client
 	k8s                     *k8s.Client
 	roleMapper              *mappings.RoleMapper
@@ -211,6 +212,10 @@ func (s *Server) securityCredentialsHandler(logger *log.Entry, w http.ResponseWr
 	write(logger, w, roleMapping.Role)
 }
 
+func (s *Server) emptyResponseHandler(logger *log.Entry, w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Server", "EC2ws")
+}
+
 func (s *Server) roleHandler(logger *log.Entry, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Server", "EC2ws")
 	remoteIP := parseRemoteAddr(r.RemoteAddr)
@@ -289,6 +294,10 @@ func (s *Server) Run(host, token, nodeName string, insecure bool) error {
 	if s.Debug {
 		// This is a potential security risk if enabled in some clusters, hence the flag
 		r.Handle("/debug/store", appHandler(s.debugStoreHandler))
+	}
+	if(s.HideUserData) {
+		r.Handle("/{version}/user-data", appHandler(s.emptyResponseHandler))
+		r.Handle("/{version}/user-data/{path:.*}", appHandler(s.emptyResponseHandler))
 	}
 	r.Handle("/{version}/meta-data/iam/security-credentials", appHandler(s.securityCredentialsHandler))
 	r.Handle("/{version}/meta-data/iam/security-credentials/", appHandler(s.securityCredentialsHandler))
