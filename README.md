@@ -515,6 +515,7 @@ Usage of ./build/bin/darwin/kube2iam:
       --base-role-arn string                Base role ARN
       --debug                               Enable debug features
       --default-role string                 Fallback role to use when annotation is not set
+      --extra-security                      Hide additional metadata URLs
       --hide-user-data                      Hide the instance's user-data
       --host-interface string               Host interface for proxying AWS metadata (default "docker0")
       --host-ip string                      IP address of host

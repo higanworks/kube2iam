@@ -60,6 +60,7 @@ type Server struct {
 	Verbose                 bool
 	Version                 bool
 	HideUserData            bool
+	ExtraSecurity           bool
 	iam                     *iam.Client
 	k8s                     *k8s.Client
 	roleMapper              *mappings.RoleMapper
@@ -298,6 +299,19 @@ func (s *Server) Run(host, token, nodeName string, insecure bool) error {
 	if(s.HideUserData) {
 		r.Handle("/{version}/user-data", appHandler(s.emptyResponseHandler))
 		r.Handle("/{version}/user-data/{path:.*}", appHandler(s.emptyResponseHandler))
+	}
+	if(s.ExtraSecurity) {
+		// permit instance identity document, but not its signatures
+		r.Handle("/{version}/dynamic/instance-identity/document", appHandler(s.reverseProxyHandler))
+		r.Handle("/{version}/dynamic/instance-identity/{path:.+}", appHandler(s.emptyResponseHandler))
+		// hide public keys, disk configuration, security group & iam information
+		r.Handle("/{version}/meta-data/public-keys/{path:.*}", appHandler(s.emptyResponseHandler))
+		r.Handle("/{version}/meta-data/block-device-mapping/{path:.*}", appHandler(s.emptyResponseHandler))
+		r.Handle("/{version}/meta-data/network/{path:.*}", appHandler(s.emptyResponseHandler))
+		r.Handle("/{version}/meta-data/security-groups", appHandler(s.emptyResponseHandler))
+		r.Handle("/{version}/meta-data/security-groups/{path:.*}", appHandler(s.emptyResponseHandler))
+		r.Handle("/{version}/meta-data/iam/info", appHandler(s.emptyResponseHandler))
+		r.Handle("/{version}/meta-data/iam/info/{path:.*}", appHandler(s.emptyResponseHandler))
 	}
 	r.Handle("/{version}/meta-data/iam/security-credentials", appHandler(s.securityCredentialsHandler))
 	r.Handle("/{version}/meta-data/iam/security-credentials/", appHandler(s.securityCredentialsHandler))

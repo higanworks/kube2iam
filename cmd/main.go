@@ -38,6 +38,7 @@ func addFlags(s *server.Server, fs *pflag.FlagSet) {
 	fs.BoolVar(&s.Verbose, "verbose", false, "Verbose")
 	fs.BoolVar(&s.Version, "version", false, "Print the version and exits")
 	fs.BoolVar(&s.HideUserData, "hide-user-data", false, "Hide the instance's user-data")
+	fs.BoolVar(&s.ExtraSecurity, "extra-security", false, "Hide additional metadata URLs")
 }
 
 func main() {
